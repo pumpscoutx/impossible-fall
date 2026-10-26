@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>THE IMPOSSIBLE FALL</title>
+<style>
+  :root{
+    --carve: rgba(238,224,200,0.9);
+    --carve-dim: rgba(238,224,200,0.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:#120c08;overflow:hidden;}
+  body{
+    font-family:Georgia,'Cormorant',serif;
+    color:var(--carve);
+    -webkit-tap-highlight-color:transparent;
+    touch-action:none;
+    user-select:none;
+  }
+  canvas{position:fixed;inset:0;display:block;width:100%;height:100%;cursor:none;}
+  .stage{
+    position:fixed;inset:0;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .phrase{
+    position:absolute;
+    font-style:italic;
+    font-weight:400;
+    letter-spacing:0.28em;
+    color:var(--carve);
+    mix-blend-mode:normal;
+    text-shadow:0 0 12px rgba(0,0,0,.7);
+    will-change:opacity,transform,filter;
+    opacity:0;
+    filter:blur(4px);
+    transform:translate3d(0,0,0);
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .phrase.soft{mix-blend-mode:soft-light;}
+  #p-title{
+    writing-mode:vertical-rl;
+    text-orientation:mixed;
+    left:6%;
+    top:8%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.5em;
+  }
+  #p-water{
+    left:40%;
+    top:38%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.34em;
+  }
+  #p-descend{
+    left:50%;
+    top:50%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.9em;
+    transform-origin:50% 50%;
+  }
+  #p-rotate{
+    left:50%;
+    top:50%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.36em;
+    transform-origin:50% 50%;
+  }
+  #p-dark{
+    left:50%;
+    top:50%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.5em;
+    transform-origin:50% 50%;
+  }
+  #p-view{
+    left:50%;
+    top:44%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.36em;
+    text-align:center;
+    white-space:normal;
+    width:min(60ch,70vw);
+    transform:translate(-50%,-50%);
+  }
+  #p-view .hint{
+    display:block;
+    margin-top:0.9em;
+    font-size:0.72em;
+    letter-spacing:0.24em;
+    color:var(--carve-dim);
+    font-style:normal;
+  }
+  #p-listen{
+    left:50%;
+    top:56%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.42em;
+    text-align:center;
+    white-space:normal;
+    width:min(52ch,72vw);
+    transform:translate(-50%,-50%);
+  }
+  #p-apart{
+    left:50%;
+    top:50%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:1.1em;
+    transform-origin:50% 50%;
+  }
+  #p-return{
+    left:50%;
+    top:50%;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.3em;
+    text-align:center;
+    white-space:normal;
+    width:min(48ch,70vw);
+    transform:translate(-50%,-50%);
+  }
+  .reveal{
+    position:absolute;
+    font-style:italic;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.3em;
+    color:var(--carve);
+    mix-blend-mode:normal;
+    text-shadow:0 0 12px rgba(0,0,0,.7);
+    pointer-events:none;
+    opacity:0;
+    filter:blur(3px);
+    transform:translate(-50%,-50%);
+    white-space:nowrap;
+    will-change:opacity,filter;
+    z-index:5;
+  }
+  .strata{
+    position:fixed;
+    right:2.2vmin;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    pointer-events:auto;
+    z-index:6;
+  }
+  .strata button{
+    appearance:none;
+    background:transparent;
+    border:0;
+    padding:4px 6px;
+    margin:0;
+    cursor:pointer;
+    display:block;
+    line-height:0;
+    border-radius:2px;
+  }
+  .strata button .tick{
+    display:block;
+    width:12px;
+    height:1.5px;
+    background:var(--carve-dim);
+    transition:background 240ms ease,width 240ms ease,transform 240ms ease;
+    transform-origin:right center;
+  }
+  .strata button[aria-current="true"] .tick{
+    background:var(--carve);
+    width:20px;
+  }
+  .strata button:focus-visible{
+    outline:1px dashed rgba(220,190,150,0.9);
+    outline-offset:2px;
+  }
+  .ui-btn{
+    position:fixed;
+    bottom:2.4vmin;
+    appearance:none;
+    background:transparent;
+    border:0;
+    font-family:Georgia,'Cormorant',serif;
+    font-style:italic;
+    font-size:clamp(16px,2.2vw,28px);
+    letter-spacing:0.34em;
+    color:var(--carve);
+    mix-blend-mode:normal;
+    text-shadow:0 0 12px rgba(0,0,0,.7);
+    cursor:pointer;
+    padding:6px 4px;
+    z-index:7;
+    pointer-events:auto;
+  }
+  .ui-btn:focus-visible{
+    outline:1px dashed rgba(220,190,150,0.9);
+    outline-offset:3px;
+  }
+  #soundBtn{left:2.4vmin;}
+  #motionBtn{left:14vmin;}
+  .sr-only{
+    position:absolute;
+    width:1px;height:1px;
+    padding:0;margin:-1px;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
+    white-space:nowrap;
+    border:0;
+  }
+  #skip{
+    position:fixed;
+    left:50%;
+    top:8px;
+    transform:translateX(-50%) translateY(-200%);
+    z-index:20;
+    background:#120c08;
+    color:rgba(220,190,150,0.9);
+    font-family:Georgia,serif;
+    font-size:12px;
+    letter-spacing:0.2em;
+    padding:8px 14px;
+    text-decoration:none;
+    border:1px solid rgba(220,190,150,0.5);
+    transition:transform 160ms ease;
+  }
+  #skip:focus{transform:translateX(-50%) translateY(0);}
+  .hidden-render{display:none !important;}
+  .phrase:not(#p-title){white-space:normal;max-width:70vw;text-align:center;margin-left:-35vw;width:70vw}
+
+  /* start gate text */
+  #p-touch{
+    position:fixed;
+    left:50%;
+    bottom:8vh;
+    transform:translateX(-50%);
+    font-style:italic;
+    font-weight:400;
+    font-size:clamp(14px,1.6vw,20px);
+    letter-spacing:0.3em;
+    color:rgba(255,255,255,0.8);
+    text-shadow:0 0 14px rgba(0,0,0,.75),0 0 6px rgba(0,0,0,.5);
+    pointer-events:none;
+    z-index:9;
+    will-change:opacity;
+    opacity:1;
+    white-space:nowrap;
+  }
+
+  /* custom cursor */
+  #cursor{
+    position:fixed;
+    left:0;top:0;
+    width:18px;height:18px;
+    margin-left:-9px;margin-top:-9px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.7);
+    pointer-events:none;
+    z-index:11;
+    will-change:transform,opacity;
+    transform:translate3d(-100px,-100px,0);
+    opacity:0;
+    box-sizing:border-box;
+  }
+  .drop{
+    position:fixed;
+    left:0;top:0;
+    width:3px;height:3px;
+    margin-left:-1.5px;margin-top:-1.5px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.7);
+    pointer-events:none;
+    z-index:10;
+    will-change:transform,opacity;
+    transform:translate3d(-100px,-100px,0);
+  }
+</style>
+</head>
+<body>
+<a id="skip" href="#description">skip to description</a>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<div id="cursor" aria-hidden="true"></div>
+<div class="drop" id="drop0" aria-hidden="true"></div>
+<div class="drop" id="drop1" aria-hidden="true"></div>
+<div class="drop" id="drop2" aria-hidden="true"></div>
+
+<div class="stage" id="stage" aria-hidden="true">
+  <div class="phrase" id="p-title">THE IMPOSSIBLE FALL</div>
+  <div class="phrase" id="p-water">was that water, or cloth?</div>
+  <div class="phrase" id="p-descend">descend</div>
+  <div class="phrase" id="p-rotate">did the page rotate?</div>
+  <div class="phrase" id="p-dark">enter the dark</div>
+  <div class="phrase" id="p-view">find the one true viewpoint<span class="hint">hold still &middot; a click remembers</span></div>
+  <div class="phrase" id="p-listen">the procession is listening</div>
+  <div class="phrase" id="p-apart">everything falls apart</div>
+  <div class="phrase" id="p-return">you have returned. something has changed.</div>
+</div>
+
+<div id="p-touch" aria-hidden="true">touch the water</div>
+
+<nav class="strata" id="strata" aria-label="chapters"></nav>
+
+<button class="ui-btn" id="soundBtn" type="button" aria-pressed="false">sound off</button>
+<button class="ui-btn" id="motionBtn" type="button" aria-pressed="false">motion: full</button>
+
+<section class="sr-only" id="description">
+  <h1>THE IMPOSSIBLE FALL</h1>
+  <p>A scroll-driven WebGL artwork. A cliff face and a falling stream are viewed as if the world itself tips over. Progress through the piece is measured from 0 to 1.</p>
+  <h2>Chapter 1 &mdash; The Impossible Fall (0.00&ndash;0.10)</h2>
+  <p>The title runs vertically down the left cliff.</p>
+  <h2>Chapter 2 &mdash; Water or Cloth (0.12&ndash;0.30)</h2>
+  <p>A small question follows the waterfall line: was that water, or cloth?</p>
+  <h2>Chapter 3 &mdash; Descend (0.30&ndash;0.48)</h2>
+  <p>The letters of the word descend fall and separate as you go deeper.</p>
+  <h2>Chapter 4 &mdash; Rotation (0.45&ndash;0.58)</h2>
+  <p>The page and the world rotate together up to ninety degrees.</p>
+  <h2>Chapter 5 &mdash; The Dark (0.55&ndash;0.66)</h2>
+  <p>The camera enters the dark interior.</p>
+  <h2>Chapter 6 &mdash; The One True Viewpoint (0.64&ndash;0.78)</h2>
+  <p>You must find the one true viewpoint.</p>
+  <h2>Chapter 7 &mdash; The Procession Listens (0.74&ndash;0.88)</h2>
+  <p>The procession is listening. Clicking reveals short poetic lines about stone, water and cloth.</p>
+  <h2>Chapter 8 &mdash; Everything Falls Apart (0.84&ndash;0.94)</h2>
+  <p>The image disintegrates.</p>
+  <h2>Chapter 9 &mdash; Return (0.94&ndash;1.00)</h2>
+  <p>You have returned. Something has changed.</p>
+  <h2>Controls</h2>
+  <p>Scroll, drag, or use the arrow keys, W, S, J, K, space, page up and page down to move. Home and End jump to the start and end. Escape returns smoothly to the beginning. A small toggle switches between calm and full motion.</p>
+</section>
+
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  window.__IMPOSSIBLE = {
+    debug: params.get('debug') === '1',
+    render: params.has('render'),
+    reduced: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  };
+})();
+</script>
+
+<script>
+if (window.__IMPOSSIBLE && window.__IMPOSSIBLE.debug) {
+  const s = document.createElement('script');
+  s.src = './vendor/lil-gui.umd.min.js';
+  s.onload = () => { window.__IMPOSSIBLE.guiReady = true; };
+  document.head.appendChild(s);
+}
+</script>
+
+<script src="./vendor/anime.min.js" defer></script>
+<script src="./vendor/Tone.js" defer></script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const CFG = window.__IMPOSSIBLE;
+const RENDER_MODE = CFG.render;
+const DEBUG = CFG.debug;
+
+const state = {
+  progressTarget: 0,
+  progress: 0,
+  time: 0,
+  vel: 0,
+  pulse: 0,
+  freeze: 0,
+  click: new THREE.Vector2(0.5, 0.5),
+  pointerTarget: new THREE.Vector2(0, 0),
+  pointer: new THREE.Vector2(0, 0),
+  pointerPrev: new THREE.Vector2(0, 0),
+  portal: new THREE.Vector2(0.78, 0.60),
+  aspect: 1,
+  quality: 2,
+  intensity: CFG.reduced ? 0.3 : 1.0,
+  calmMotion: CFG.reduced,
+  escapeReturn: false,
+  pointerDownTime: 0,
+  lastRevealAt: -10,
+  width: 1,
+  height: 1,
+  dpr: 1,
+
+  // start gate
+  started: false,
+  uStarted: 0,
+
+  // observation
+  still: 0,
+  lastInputTime: performance.now() / 1000,
+  attn: new THREE.Vector3(0.5, 0.5, 0),
+  attnSmoothed: new THREE.Vector2(0.5, 0.5),
+  dwell: 0,
+  speedMode: 0,
+
+  // events
+  evt: new THREE.Vector4(0, 0, 0, 0),
+  nextEventAt: 0,
+  startTimeAbs: 0,
+
+  // cursor
+  cursorX: 0,
+  cursorY: 0,
+  cursorLaggedY: 0,
+  hoverLag: 0,
+  trailX: [0,0,0],
+  trailY: [0,0,0],
+  overWater: false,
+
+  // field
+  fieldPrevFieldOK: false,
+  lastSeekT: -1
+};
+
+const canvas = document.getElementById('gl');
+const stage = document.getElementById('stage');
+
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: false,
+  alpha: false,
+  powerPreference: 'high-performance'
+});
+renderer.setClearColor(0x120c08, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+function detectQuality(){
+  const dpr = window.devicePixelRatio || 1;
+  const hc = navigator.hardwareConcurrency || 4;
+  const dm = navigator.deviceMemory || 4;
+  let q = 2;
+  if (dpr > 2 || hc <= 4 || dm <= 4) q = 1;
+  if (dpr > 3 || hc <= 2 || dm <= 2) q = 0;
+  return q;
+}
+state.quality = detectQuality();
+
+function clampDpr(v){ return Math.max(1, Math.min(1.75, v)); }
+
+function resize(){
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  state.width = w; state.height = h;
+  state.aspect = w / Math.max(1, h);
+  const dpr = clampDpr(window.devicePixelRatio || 1);
+  state.dpr = dpr;
+  renderer.setPixelRatio(dpr);
+  renderer.setSize(w, h, false);
+  if (uniforms) uniforms.uAspect.value = state.aspect;
+}
+window.addEventListener('resize', resize);
+
+// ---- shader load ----
+let uniforms = null;
+let material = null;
+let mesh = null;
+
+const vertexShader = 'out vec2 vUv; void main(){vUv=uv; gl_Position=vec4(position.xy,0.,1.);}';
+
+const loader = new THREE.TextureLoader();
+function loadTex(url, srgb){
+  return new Promise((resolve, reject) => {
+    loader.load(url, (tex) => {
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.generateMipmaps = false;
+      tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+      tex.needsUpdate = true;
+      resolve(tex);
+    }, undefined, reject);
+  });
+}
+
+// sem textures must have mipmaps (for textureLod)
+function loadSemTex(url){
+  return new Promise((resolve, reject) => {
+    loader.load(url, (tex) => {
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.generateMipmaps = true;
+      tex.colorSpace = THREE.NoColorSpace;
+      tex.needsUpdate = true;
+      resolve(tex);
+    }, undefined, reject);
+  });
+}
+
+async function fetchText(url){
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('failed to fetch ' + url + ' (' + r.status + ')');
+  return await r.text();
+}
+
+// ---- interaction field (ping-pong) ----
+const FIELD_W = 128;
+const FIELD_H = 228;
+let fieldRT_A = null;
+let fieldRT_B = null;
+let fieldScene = null;
+let fieldCam = null;
+let fieldMat = null;
+let fieldMesh = null;
+let fieldSupported = true;
+
+const fieldVertex = vertexShader;
+const fieldFrag = `
+  in vec2 vUv;
+  out vec4 fragColor;
+  uniform sampler2D uPrev;
+  uniform vec2 uPointer;
+  uniform vec2 uPointerVel;
+  uniform float uDt;
+  uniform float uInject;
+
+  void main(){
+    vec2 uv = vUv;
+    float texelX = 1.0/128.0;
+    float texelY = 1.0/228.0;
+
+    // sample neighbours for diffusion
+    vec4 c = texture(uPrev, uv);
+    vec4 n = texture(uPrev, uv + vec2(0.0, texelY));
+    vec4 s = texture(uPrev, uv - vec2(0.0, texelY));
+    vec4 e = texture(uPrev, uv + vec2(texelX, 0.0));
+    vec4 w = texture(uPrev, uv - vec2(texelX, 0.0));
+    vec4 blur = (c*0.4 + (n+s+e+w)*0.15);
+
+    // decode RG displacement
+    vec2 disp = (blur.rg) * 2.0 - 1.0;
+    float B = blur.b;   // liquid energy
+    float A = blur.a;   // cloth energy
+
+    // diffusion (displacement)
+    disp *= 0.985;
+    // decay liquid fast (~0.6s)
+    B *= mix(1.0, 0.55, uDt * 2.0);
+    // cloth follows liquid with lag: A += (B - A) * dt/0.13
+    // we approximate with per-frame lerp for simplicity
+    A += (B - A) * clamp(uDt / 0.13, 0.0, 1.0);
+    // decay A slower
+    A *= mix(1.0, 0.75, uDt * 0.5);
+
+    // splat injection from pointer
+    float d = distance(uv, uPointer);
+    float g = exp(-d * d * 400.0);
+    float inj = g * uInject;
+    B = max(B, inj);
+    A = max(A, inj * 0.8);
+    disp += uPointerVel * g * 6.0;
+
+    disp = clamp(disp, vec2(-1.0), vec2(1.0));
+
+    vec2 outRG = disp * 0.5 + 0.5;
+    fragColor = vec4(outRG, B, A);
+  }
+`;
+
+function setupField(){
+  // Check half float support
+  const gl = renderer.getContext();
+  let type = THREE.HalfFloatType;
+  if (!(gl.getExtension('OES_texture_half_float') || gl.getExtension('EXT_color_buffer_half_float') || (gl.getExtension('EXT_color_buffer_float')))) {
+    type = THREE.UnsignedByteType;
+    fieldSupported = false;
+  }
+  try {
+    const params = {
+      type,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      wrapS: THREE.ClampToEdgeWrapping,
+      wrapT: THREE.ClampToEdgeWrapping,
+      depthBuffer: false,
+      stencilBuffer: false
+    };
+    fieldRT_A = new THREE.WebGLRenderTarget(FIELD_W, FIELD_H, params);
+    fieldRT_B = new THREE.WebGLRenderTarget(FIELD_W, FIELD_H, params);
+  } catch(e){
+    const params = {
+      type: THREE.UnsignedByteType,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      wrapS: THREE.ClampToEdgeWrapping,
+      wrapT: THREE.ClampToEdgeWrapping,
+      depthBuffer: false,
+      stencilBuffer: false
+    };
+    fieldRT_A = new THREE.WebGLRenderTarget(FIELD_W, FIELD_H, params);
+    fieldRT_B = new THREE.WebGLRenderTarget(FIELD_W, FIELD_H, params);
+    fieldSupported = false;
+  }
+
+  fieldScene = new THREE.Scene();
+  fieldCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  fieldMat = new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    vertexShader: fieldVertex,
+    fragmentShader: fieldFrag,
+    uniforms: {
+      uPrev:       { value: null },
+      uPointer:    { value: new THREE.Vector2(0.5, 0.5) },
+      uPointerVel: { value: new THREE.Vector2(0, 0) },
+      uDt:         { value: 1/60 },
+      uInject:     { value: 0.0 }
+    },
+    depthTest: false,
+    depthWrite: false
+  });
+  fieldMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), fieldMat);
+  fieldMesh.frustumCulled = false;
+  fieldScene.add(fieldMesh);
+
+  // Clear both render targets
+  const prevRT = renderer.getRenderTarget();
+  renderer.setRenderTarget(fieldRT_A);
+  renderer.setClearColor(0x000000, 0);
+  renderer.clear();
+  renderer.setRenderTarget(fieldRT_B);
+  renderer.clear();
+  renderer.setRenderTarget(prevRT);
+  renderer.setClearColor(0x120c08, 1);
+}
+
+function stepField(dt, pointerUV, pointerVel, inject){
+  if (!fieldRT_A || !fieldRT_B) return;
+  fieldMat.uniforms.uPrev.value = fieldRT_A.texture;
+  fieldMat.uniforms.uPointer.value.set(pointerUV.x, pointerUV.y);
+  fieldMat.uniforms.uPointerVel.value.set(pointerVel.x, pointerVel.y);
+  fieldMat.uniforms.uDt.value = Math.min(0.05, Math.max(1/240, dt));
+  fieldMat.uniforms.uInject.value = inject;
+
+  const prevRT = renderer.getRenderTarget();
+  renderer.setRenderTarget(fieldRT_B);
+  renderer.render(fieldScene, fieldCam);
+  renderer.setRenderTarget(prevRT);
+
+  // swap
+  const tmp = fieldRT_A;
+  fieldRT_A = fieldRT_B;
+  fieldRT_B = tmp;
+
+  if (uniforms && uniforms.uField) {
+    uniforms.uField.value = fieldRT_A.texture;
+  }
+}
+
+function resetField(){
+  if (!fieldRT_A) return;
+  const prevRT = renderer.getRenderTarget();
+  renderer.setRenderTarget(fieldRT_A);
+  renderer.setClearColor(0x000000, 0);
+  renderer.clear();
+  renderer.setRenderTarget(fieldRT_B);
+  renderer.clear();
+  renderer.setRenderTarget(prevRT);
+  renderer.setClearColor(0x120c08, 1);
+}
+
+async function boot(){
+  let fragmentShader;
+  try {
+    fragmentShader = await fetchText('scene.frag');
+  } catch (e) {
+    console.error('[THE IMPOSSIBLE FALL] could not load scene.frag', e);
+    fragmentShader = 'in vec2 vUv; out vec4 c; void main(){ c = vec4(vUv,0.,1.); }';
+  }
+
+  let texImg, texSem1, texSem2, texSem3, texSem4;
+  try {
+    [texImg, texSem1, texSem2, texSem3, texSem4] = await Promise.all([
+      loadTex('assets/original.png', true),
+      loadSemTex('assets/sem1.png'),
+      loadSemTex('assets/sem2.png'),
+      loadSemTex('assets/sem3.png'),
+      loadSemTex('assets/sem4.png')
+    ]);
+  } catch (e) {
+    console.warn('[THE IMPOSSIBLE FALL] texture load failed, using placeholders', e);
+    texImg = makePlaceholder(0x8a6f4e);
+    texSem1 = makePlaceholder(0x000000);
+    texSem2 = makePlaceholder(0xffffff);
+    texSem3 = makePlaceholder(0x333333);
+    texSem4 = makePlaceholder(0x666666);
+  }
+
+  setupField();
+
+  uniforms = {
+    uImg:        { value: texImg },
+    uSem1:       { value: texSem1 },
+    uSem2:       { value: texSem2 },
+    uSem3:       { value: texSem3 },
+    uSem4:       { value: texSem4 },
+    uField:      { value: fieldRT_A ? fieldRT_A.texture : null },
+    uP:          { value: 0.0 },
+    uTime:       { value: 0.0 },
+    uVel:        { value: 0.0 },
+    uPulse:      { value: 0.0 },
+    uFreeze:     { value: 0.0 },
+    uAspect:     { value: state.aspect },
+    uImgAspect:  { value: 869 / 1200 },
+    uQuality:    { value: state.quality },
+    uIntensity:  { value: state.intensity },
+    uPointer:    { value: new THREE.Vector2(0, 0) },
+    uPortal:     { value: state.portal.clone() },
+    uClick:      { value: new THREE.Vector2(0.5, 0.5) },
+    uStarted:    { value: 0.0 },
+    uStill:      { value: 0.0 },
+    uAttn:       { value: new THREE.Vector3(0.5, 0.5, 0) },
+    uSpeedMode:  { value: 0.0 },
+    uEvt:        { value: new THREE.Vector4(0, 0, 0, 0) }
+  };
+
+  material = new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    vertexShader,
+    fragmentShader,
+    uniforms,
+    depthTest: false,
+    depthWrite: false
+  });
+
+  material.onBeforeCompile = () => {};
+  mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+
+  resize();
+  renderer.compile(scene, camera);
+
+  try {
+    const gl = renderer.getContext();
+    if (material.program) {
+      const info = gl.getProgramInfoLog(material.program.program);
+      if (info && info.trim().length) console.error('[THE IMPOSSIBLE FALL] shader program log:', info);
+    }
+  } catch(e){ /* noop */ }
+
+  buildStrata();
+  bindDebug();
+  setupInput();
+  setupCursor();
+
+  if (RENDER_MODE) {
+    setupRenderMode();
+  } else {
+    setupAudio();
+    loop();
+  }
+
+  window.renderReady = true;
+  document.dispatchEvent(new Event('impossible-ready'));
+}
+
+function makePlaceholder(hex){
+  const c = document.createElement('canvas');
+  c.width = 8; c.height = 8;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#' + hex.toString(16).padStart(6, '0');
+  ctx.fillRect(0, 0, 8, 8);
+  const t = new THREE.CanvasTexture(c);
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
+  t.wrapS = THREE.ClampToEdgeWrapping;
+  t.wrapT = THREE.ClampToEdgeWrapping;
+  t.generateMipmaps = true;
+  t.needsUpdate = true;
+  return t;
+}
+
+// ---- DOM typography ----
+const el = {
+  title: document.getElementById('p-title'),
+  water: document.getElementById('p-water'),
+  descend: document.getElementById('p-descend'),
+  rotate: document.getElementById('p-rotate'),
+  dark: document.getElementById('p-dark'),
+  view: document.getElementById('p-view'),
+  listen: document.getElementById('p-listen'),
+  apart: document.getElementById('p-apart'),
+  return: document.getElementById('p-return'),
+  touch: document.getElementById('p-touch')
+};
+
+function smoothstep(a, b, x){
+  const t = Math.max(0, Math.min(1, (x - a) / Math.max(1e-6, (b - a))));
+  return t * t * (3 - 2 * t);
+}
+function windowOpacity(p, a, b, fade){
+  fade = fade === undefined ? 0.05 : fade;
+  if (p < a - fade || p > b + fade) return 0;
+  const inV = smoothstep(a - fade, a + fade, p);
+  const outV = 1 - smoothstep(b - fade, b + fade, p);
+  return Math.max(0, Math.min(inV, outV));
+}
+function setPhrase(node, opacity, blur, tx, ty, rot, scale){
+  if (!node) return;
+  if (opacity <= 0.001) {
+    node.style.opacity = '0';
+    return;
+  }
+  node.style.opacity = String(opacity);
+  const parts = [];
+  if (tx !== undefined || ty !== undefined) parts.push(`translate3d(${tx||0}px,${ty||0}px,0)`);
+  if (rot) parts.push(`rotate(${rot}deg)`);
+  if (scale !== undefined && scale !== 1) parts.push(`scale(${scale})`);
+  node.style.filter = `blur(${blur}px)`;
+  node.style.transform = parts.join(' ');
+}
+
+function rotationAngle(p){
+  const t = smoothstep(0.42, 0.58, p);
+  return t * 90;
+}
+
+function updateTypography(p, time){
+  {
+    const o = windowOpacity(p, 0.00, 0.10, 0.04);
+    setPhrase(el.title, o, (1 - o) * 5, 0, (1 - o) * -14, 0, 1);
+  }
+  {
+    const o = windowOpacity(p, 0.12, 0.30, 0.05);
+    const drift = Math.sin(time * 0.6) * 4;
+    setPhrase(el.water, o, (1 - o) * 4, drift, (p - 0.21) * -40, 0, 1);
+  }
+  {
+    const o = windowOpacity(p, 0.30, 0.48, 0.05);
+    const fall = (p - 0.30) * 900;
+    const spread = 1 + (p - 0.30) * 3.0;
+    if (el.descend) {
+      el.descend.style.letterSpacing = (0.9 + (p - 0.30) * 5).toFixed(3) + 'em';
+    }
+    setPhrase(el.descend, o, (1 - o) * 6, 0, fall, 0, spread * 0.9 + 0.1);
+  }
+  {
+    const o = windowOpacity(p, 0.45, 0.58, 0.04);
+    const ang = rotationAngle(p);
+    setPhrase(el.rotate, o, (1 - o) * 4, 0, 0, ang, 1);
+  }
+  {
+    const o = windowOpacity(p, 0.55, 0.66, 0.05);
+    const s = 1 + Math.max(0, p - 0.55) * 4.0;
+    setPhrase(el.dark, o, (1 - o) * 6, 0, 0, 0, s);
+  }
+  {
+    const o = windowOpacity(p, 0.64, 0.78, 0.05);
+    setPhrase(el.view, o, (1 - o) * 4, 0, (0.71 - p) * 60, 0, 1);
+  }
+  {
+    const o = windowOpacity(p, 0.74, 0.88, 0.05);
+    setPhrase(el.listen, o, (1 - o) * 4, 0, (p - 0.81) * 40, 0, 1);
+  }
+  {
+    const o = windowOpacity(p, 0.84, 0.94, 0.05);
+    const s = 1 + Math.max(0, p - 0.84) * 5.0;
+    if (el.apart) el.apart.style.letterSpacing = (1.1 + (p - 0.84) * 6).toFixed(3) + 'em';
+    setPhrase(el.apart, o, (1 - o) * 8, 0, (0.84 - p) * 40, 0, s);
+  }
+  {
+    const o = windowOpacity(p, 0.94, 1.00, 0.04);
+    setPhrase(el.return, o, (1 - o) * 3, 0, 0, 0, 1);
+  }
+  updateStrata(p);
+
+  // start gate text: fades out with uStarted
+  if (el.touch) {
+    const t = 1 - state.uStarted;
+    el.touch.style.opacity = String(Math.max(0, t));
+  }
+}
+
+// ---- strata / chapter ticks ----
+const CHAPTERS = [
+  { p: 0.00, label: 'chapter 1 the impossible fall' },
+  { p: 0.12, label: 'chapter 2 water or cloth' },
+  { p: 0.30, label: 'chapter 3 descend' },
+  { p: 0.45, label: 'chapter 4 rotation' },
+  { p: 0.55, label: 'chapter 5 enter the dark' },
+  { p: 0.64, label: 'chapter 6 the one true viewpoint' },
+  { p: 0.74, label: 'chapter 7 the procession is listening' },
+  { p: 0.84, label: 'chapter 8 everything falls apart' },
+  { p: 0.94, label: 'chapter 9 you have returned' },
+  { p: 0.98, label: 'chapter 10 afterimage' },
+  { p: 1.00, label: 'chapter 11 the end' }
+];
+
+const strataEl = document.getElementById('strata');
+const tickButtons = [];
+
+function buildStrata(){
+  if (RENDER_MODE) { strataEl.classList.add('hidden-render'); return; }
+  strataEl.innerHTML = '';
+  tickButtons.length = 0;
+  CHAPTERS.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', 'jump to ' + c.label);
+    const t = document.createElement('span');
+    t.className = 'tick';
+    b.appendChild(t);
+    b.addEventListener('click', () => {
+      state.progressTarget = c.p;
+      state.escapeReturn = false;
+    });
+    strataEl.appendChild(b);
+    tickButtons.push({ btn: b, p: c.p });
+  });
+}
+
+function updateStrata(p){
+  if (RENDER_MODE) return;
+  let currentIdx = 0;
+  for (let i = 0; i < tickButtons.length; i++){
+    if (p >= tickButtons[i].p - 0.0001) currentIdx = i;
+  }
+  for (let i = 0; i < tickButtons.length; i++){
+    tickButtons[i].btn.setAttribute('aria-current', i === currentIdx ? 'true' : 'false');
+  }
+}
+
+// ---- custom cursor ----
+const cursorEl = document.getElementById('cursor');
+const dropEls = [
+  document.getElementById('drop0'),
+  document.getElementById('drop1'),
+  document.getElementById('drop2')
+];
+
+function setupCursor(){
+  if (RENDER_MODE) {
+    cursorEl.style.opacity = '0';
+    dropEls.forEach(d => d.style.opacity = '0');
+  }
+}
+
+// waterfall region: x 0.3-0.7, y 0.25-0.85 (screen y from top)
+function overWaterfall(screenX, screenY){
+  const u = screenX / Math.max(1, state.width);
+  const v = screenY / Math.max(1, state.height);
+  return (u > 0.3 && u < 0.7 && v > 0.25 && v < 0.85);
+}
+
+function updateCursor(dt){
+  if (RENDER_MODE) return;
+  const over = state.overWater && state.started;
+
+  // hover lag: grows up to 14px while hovering
+  const targetLag = over ? 14 : 0;
+  const rate = over ? 2.0 : 4.0;
+  state.hoverLag += (targetLag - state.hoverLag) * Math.min(1, dt * rate);
+
+  // lagged vertical cursor
+  state.cursorLaggedY += (state.cursorY - state.cursorLaggedY) * Math.min(1, dt * 6);
+
+  const stretch = over ? 1.4 : 1.0;
+  const dy = over ? state.hoverLag : 0;
+
+  cursorEl.style.transform = `translate3d(${state.cursorX}px,${state.cursorLaggedY + dy}px,0) scale(1,${stretch})`;
+  cursorEl.style.opacity = '1';
+
+  // trails
+  const now = performance.now() / 1000;
+  for (let i = 0; i < 3; i++){
+    const lagTime = (i + 1) * 0.05;
+    const tx = state.trailX[i];
+    const ty = state.trailY[i];
+    if (over) {
+      dropEls[i].style.transform = `translate3d(${tx}px,${ty + (8 + i*2)}px,0)`;
+      dropEls[i].style.opacity = String(0.5 * (1 - i * 0.25));
+    } else {
+      dropEls[i].style.opacity = '0';
+    }
+  }
+
+  // update trail ring buffers
+  state.trailX.unshift(state.cursorX);
+  state.trailX.pop();
+  state.trailY.unshift(state.cursorLaggedY);
+  state.trailY.pop();
+}
+
+// ---- input ----
+function markInput(){
+  state.lastInputTime = performance.now() / 1000;
+  state.still = 0;
+}
+
+function setupInput(){
+  if (RENDER_MODE) return;
+
+  window.addEventListener('wheel', (e) => {
+    markInput();
+    if (!state.started) return; // no progress until started
+    if (state.escapeReturn) state.escapeReturn = false;
+    const d = e.deltaY * 0.00025;
+    const step = state.calmMotion ? d * 0.5 : d;
+    state.progressTarget = Math.max(0, Math.min(1, state.progressTarget + step));
+  }, { passive: true });
+
+  let touchStart = null;
+  window.addEventListener('touchstart', (e) => {
+    markInput();
+    if (!state.started) {
+      state.started = true;
+      state.startTimeAbs = performance.now() / 1000;
+    }
+    if (e.touches.length === 1){
+      touchStart = { y: e.touches[0].clientY, p: state.progressTarget, t: performance.now() };
+      state.pointerDownTime = performance.now();
+      handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    markInput();
+    if (e.touches.length === 1){
+      const t = e.touches[0];
+      handlePointerMove(t.clientX, t.clientY);
+      if (touchStart){
+        const dy = (touchStart.y - t.clientY);
+        const d = dy * 0.0015;
+        state.escapeReturn = false;
+        if (state.started) {
+          state.progressTarget = Math.max(0, Math.min(1, touchStart.p + (state.calmMotion ? d * 0.5 : d)));
+        }
+      }
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    markInput();
+    touchStart = null;
+    handlePointerUp();
+  }, { passive: true });
+
+  const keySteps = 0.03;
+  window.addEventListener('keydown', (e) => {
+    markInput();
+    if (!state.started) return;
+    const k = e.key;
+    let handled = true;
+    const step = state.calmMotion ? keySteps * 0.5 : keySteps;
+    if (k === 'ArrowDown' || k === 'ArrowRight' || k === 'j' || k === 'J' || k === 's' || k === 'S' || k === 'PageDown' || k === ' '){
+      state.escapeReturn = false;
+      state.progressTarget = Math.min(1, state.progressTarget + step);
+    } else if (k === 'ArrowUp' || k === 'ArrowLeft' || k === 'k' || k === 'K' || k === 'w' || k === 'W' || k === 'PageUp'){
+      state.escapeReturn = false;
+      state.progressTarget = Math.max(0, state.progressTarget - step);
+    } else if (k === 'Home'){
+      state.escapeReturn = false;
+      state.progressTarget = 0;
+    } else if (k === 'End'){
+      state.escapeReturn = false;
+      state.progressTarget = 1;
+    } else if (k === 'Escape'){
+      state.escapeReturn = true;
+    } else {
+      handled = false;
+    }
+    if (handled) e.preventDefault();
+  });
+
+  window.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return;
+    markInput();
+    if (!state.started) {
+      state.started = true;
+      state.startTimeAbs = performance.now() / 1000;
+    }
+    state.pointerDownTime = performance.now();
+    handlePointerDown(e.clientX, e.clientY);
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    markInput();
+    handlePointerMove(e.clientX, e.clientY);
+    // start gate: pointer over waterfall region
+    if (!state.started && overWaterfall(e.clientX, e.clientY)) {
+      state.started = true;
+      state.startTimeAbs = performance.now() / 1000;
+    }
+  });
+
+  window.addEventListener('pointerup', (e) => {
+    if (e.pointerType === 'touch') return;
+    markInput();
+    handlePointerUp();
+  });
+
+  if (window.DeviceOrientationEvent){
+    window.addEventListener('deviceorientation', (e) => {
+      markInput();
+      const gamma = e.gamma || 0;
+      const beta = e.beta || 0;
+      const nx = Math.max(-1, Math.min(1, gamma / 45)) * 0.15;
+      const ny = Math.max(-1, Math.min(1, (beta - 45) / 45)) * 0.15;
+      state.pointerTarget.x += nx;
+      state.pointerTarget.y += ny;
+      state.pointerTarget.x = Math.max(-1, Math.min(1, state.pointerTarget.x));
+      state.pointerTarget.y = Math.max(-1, Math.min(1, state.pointerTarget.y));
+    });
+  }
+
+  const motionBtn = document.getElementById('motionBtn');
+  motionBtn.textContent = state.calmMotion ? 'motion: calm' : 'motion: full';
+  motionBtn.setAttribute('aria-pressed', state.calmMotion ? 'true' : 'false');
+  motionBtn.addEventListener('click', () => {
+    state.calmMotion = !state.calmMotion;
+    motionBtn.textContent = state.calmMotion ? 'motion: calm' : 'motion: full';
+    motionBtn.setAttribute('aria-pressed', state.calmMotion ? 'true' : 'false');
+    state.intensity = state.calmMotion ? 0.3 : 1.0;
+    if (uniforms) uniforms.uIntensity.value = state.intensity;
+  });
+}
+
+function handlePointerDown(cx, cy){
+  const x = (cx / state.width) * 2 - 1;
+  const y = -((cy / state.height) * 2 - 1);
+  state.pointerTarget.set(x, y);
+  state.click.set((cx / state.width), 1 - (cy / state.height));
+  state.pulse = 1;
+  if (uniforms){
+    uniforms.uClick.value.set(state.click.x, state.click.y);
+  }
+  maybeReveal();
+}
+
+function handlePointerMove(cx, cy){
+  state.cursorX = cx;
+  state.cursorY = cy;
+  state.overWater = overWaterfall(cx, cy);
+  const x = (cx / state.width) * 2 - 1;
+  const y = -((cy / state.height) * 2 - 1);
+  state.pointerTarget.set(x, y);
+  if (state.pointerDownTime && (performance.now() - state.pointerDownTime) > 250){
+    state.freeze = 1;
+  }
+  triggerRustle();
+}
+
+function handlePointerUp(){
+  state.pointerDownTime = 0;
+  state.freeze = 0;
+}
+
+// ---- reveal lines ----
+const REVEAL_LINES = [
+  'the stone remembers the shape of water',
+  'a cloth was hung here, once, to dry',
+  'every drop repeats the same question',
+  'the rock was folded like fabric',
+  'listen: the water is counting'
+];
+
+function maybeReveal(){
+  if (state.progress < 0.74 || state.progress > 0.88) return;
+  const now = performance.now() / 1000;
+  if (now - state.lastRevealAt < 0.4) return;
+  state.lastRevealAt = now;
+
+  const node = document.createElement('div');
+  node.className = 'reveal';
+  node.textContent = REVEAL_LINES[Math.floor(Math.random() * REVEAL_LINES.length)];
+  node.style.left = (state.click.x * 100) + '%';
+  node.style.top = ((1 - state.click.y) * 100) + '%';
+  stage.appendChild(node);
+
+  const start = performance.now();
+  const dur = 3000;
+  const fadeIn = 500;
+  function tick(){
+    const t = (performance.now() - start);
+    let o = 0;
+    if (t < fadeIn) o = t / fadeIn;
+    else if (t < dur - 800) o = 1;
+    else if (t < dur) o = 1 - (t - (dur - 800)) / 800;
+    else o = 0;
+    node.style.opacity = String(Math.max(0, Math.min(1, o)));
+    node.style.filter = 'blur(' + ((1 - o) * 4).toFixed(2) + 'px)';
+    if (t < dur) requestAnimationFrame(tick);
+    else node.remove();
+  }
+  requestAnimationFrame(tick);
+
+  playRevealChime();
+}
+
+// ---- audio ----
+let audio = {
+  started: false,
+  muted: true,
+  master: null,
+  waterfall: null,
+  waterfallLP: null,
+  wind: null,
+  windBP: null,
+  windLFO: null,
+  drone: null,
+  droneGain: null,
+  reverb: null,
+  reverbGain: null,
+  panner: null,
+  noise: null,
+  clothGain: null,
+  lastRustle: 0
+};
+
+function setupAudio(){
+  const btn = document.getElementById('soundBtn');
+  btn.addEventListener('click', async () => {
+    if (!window.Tone){ return; }
+    if (!audio.started){
+      try {
+        await Tone.start();
+      } catch(e){ console.warn('Tone.start failed', e); return; }
+      buildAudioGraph();
+      audio.started = true;
+      audio.muted = false;
+      btn.textContent = 'sound on';
+      btn.setAttribute('aria-pressed', 'true');
+    } else {
+      audio.muted = !audio.muted;
+      btn.textContent = audio.muted ? 'sound off' : 'sound on';
+      btn.setAttribute('aria-pressed', audio.muted ? 'false' : 'true');
+    }
+  });
+}
+
+function buildAudioGraph(){
+  const T = window.Tone;
+
+  audio.master = new T.Gain(0.0).toDestination();
+  audio.panner = new T.Panner(0).connect(audio.master);
+
+  audio.waterfallLP = new T.Filter(600, 'lowpass').connect(audio.panner);
+  audio.waterfallLP.Q.value = 0.8;
+  audio.noise = new T.Noise('brown').start();
+  audio.waterfall = new T.Gain(0.0).connect(audio.waterfallLP);
+  audio.noise.connect(audio.waterfall);
+
+  audio.windBP = new T.Filter(500, 'bandpass').connect(audio.panner);
+  audio.windBP.Q.value = 1.2;
+  audio.wind = new T.Gain(0.0).connect(audio.windBP);
+  const pink = new T.Noise('pink').start();
+  pink.connect(audio.wind);
+  audio.windLFO = new T.LFO(0.08, 300, 900).start();
+  audio.windLFO.connect(audio.windBP.frequency);
+
+  audio.droneGain = new T.Gain(0.0).connect(audio.panner);
+  audio.drone = new T.Oscillator(55, 'sine').start();
+  audio.drone.connect(audio.droneGain);
+
+  audio.reverb = new T.Reverb({ decay: 4.5, wet: 1.0 });
+  audio.reverbGain = new T.Gain(0.0);
+  audio.reverbGain.connect(audio.reverb);
+  audio.reverb.connect(audio.master);
+
+  audio.clothGain = new T.Gain(0.0).connect(audio.panner);
+}
+
+function triggerRustle(){
+  if (!audio.started || audio.muted || !window.Tone) return;
+  const now = performance.now() / 1000;
+  if (now - audio.lastRustle < 0.18) return;
+  audio.lastRustle = now;
+  const speed = Math.abs(state.vel) * 4 + 0.05;
+  const g = Math.min(0.35, speed);
+  const src = new Tone.Noise('white').start();
+  const f = new Tone.Filter(1800 + Math.random() * 2400, 'bandpass');
+  f.Q.value = 1.6;
+  const env = new Tone.AmplitudeEnvelope({
+    attack: 0.008,
+    decay: 0.12,
+    sustain: 0,
+    release: 0.18
+  }).connect(audio.panner);
+  src.connect(f);
+  f.connect(env);
+  env.triggerAttackRelease(0.09, Tone.now());
+  setTimeout(() => { try { src.stop(); src.dispose(); f.dispose(); env.dispose(); } catch(e){} }, 600);
+}
+
+function playRevealChime(){
+  if (!audio.started || audio.muted || !window.Tone) return;
+  const osc = new Tone.Oscillator(660 + Math.random() * 220, 'sine').start();
+  const env = new Tone.AmplitudeEnvelope({
+    attack: 0.05, decay: 1.2, sustain: 0, release: 0.8
+  }).connect(audio.master);
+  osc.connect(env);
+  env.triggerAttackRelease(0.2, Tone.now());
+  setTimeout(() => { try { osc.stop(); osc.dispose(); env.dispose(); } catch(e){} }, 2600);
+}
+
+function updateAudio(p, dt){
+  if (!audio.started || !window.Tone || !audio.master) return;
+  const target = audio.muted ? 0.0 : 1.0;
+  audio.master.gain.rampTo(target * 0.6, 0.3);
+
+  if (audio.muted) return;
+
+  const wf = windowOpacity(p, 0.18, 0.52, 0.08);
+  audio.waterfall.gain.rampTo(wf * 0.35, 0.4);
+  audio.waterfallLP.frequency.rampTo(500 + wf * 900, 0.4);
+
+  const wind = windowOpacity(p, 0.0, 1.0, 0.15) * 0.12 + 0.03;
+  audio.wind.gain.rampTo(wind, 0.5);
+
+  const dr = 0.08 + windowOpacity(p, 0.55, 0.8, 0.1) * 0.14;
+  audio.droneGain.gain.rampTo(dr, 0.6);
+
+  const portalWet = windowOpacity(p, 0.55, 0.78, 0.08);
+  audio.reverbGain.gain.rampTo(portalWet * 0.5, 0.5);
+
+  const cutoff = 900 - portalWet * 600;
+  audio.waterfallLP.frequency.rampTo(Math.max(180, cutoff), 0.4);
+
+  const ang = rotationAngle(p);
+  const pan = Math.sin((ang / 90) * Math.PI * 0.5) * 0.7;
+  if (audio.panner && audio.panner.pan) {
+    audio.panner.pan.rampTo(pan, 0.4);
+  }
+}
+
+// ---- rare events ----
+function scheduleNextEvent(nowAbs){
+  state.nextEventAt = nowAbs + 14 + Math.random() * 16;
+}
+
+function updateEvents(nowAbs, sinceStart, dt){
+  if (!state.started) return;
+  if (sinceStart < 5) {
+    if (state.nextEventAt === 0) scheduleNextEvent(nowAbs);
+    return;
+  }
+  if (state.nextEventAt === 0) scheduleNextEvent(nowAbs);
+
+  if (nowAbs >= state.nextEventAt){
+    // pick event
+    const kinds = ['reverse', 'mist'];
+    if (sinceStart > 30) kinds.push('figure');
+    const kind = kinds[Math.floor(Math.random() * kinds.length)];
+    const seed = Math.random();
+    if (kind === 'reverse'){
+      state.eventReverse = { t0: nowAbs, dur: 1.6 };
+    } else if (kind === 'mist'){
+      state.eventMist = { t0: nowAbs, dur: 0.6 };
+    } else if (kind === 'figure'){
+      state.eventFigure = { t0: nowAbs, dur: 6.0 };
+    }
+    state.evt.w = seed;
+    scheduleNextEvent(nowAbs);
+  }
+
+  // update event envelopes
+  let rx = 0, ry = 0, rz = 0;
+  if (state.eventReverse){
+    const u = (nowAbs - state.eventReverse.t0) / state.eventReverse.dur;
+    if (u >= 1) { rx = 0; state.eventReverse = null; }
+    else rx = u;
+  }
+  if (state.eventFigure){
+    const u = (nowAbs - state.eventFigure.t0) / state.eventFigure.dur;
+    if (u >= 1) { ry = 0; state.eventFigure = null; }
+    else ry = u;
+  }
+  if (state.eventMist){
+    const u = (nowAbs - state.eventMist.t0) / state.eventMist.dur;
+    if (u >= 1) { rz = 0; state.eventMist = null; }
+    else rz = 1 - Math.abs(u - 0.5) * 2; // rise/fall
+  }
+  state.evt.x = rx;
+  state.evt.y = ry;
+  state.evt.z = rz;
+}
+
+// ---- render-mode helpers ----
+function setupRenderMode(){
+  document.getElementById('soundBtn').classList.add('hidden-render');
+  document.getElementById('motionBtn').classList.add('hidden-render');
+  document.getElementById('strata').classList.add('hidden-render');
+
+  const dropEls = [
+    document.getElementById('drop0'),
+    document.getElementById('drop1'),
+    document.getElementById('drop2')
+  ];
+  // hide trails in render mode (only ring cursor visible)
+  dropEls.forEach(d => d.style.opacity = '0');
+
+  window.seek = async function(t){
+    // detect backward seek -> reset field
+    if (t < state.lastSeekT - 0.001) {
+      resetField();
+      state.eventReverse = null;
+      state.eventFigure = null;
+      state.eventMist = null;
+      state.lastSeekT = -1;
+    }
+
+    // ---- scripted pointer path ----
+    let px = 0.5, py = 0.9;
+    if (t < 1.5){
+      px = 0.5; py = 0.9;
+    } else if (t < 3.0){
+      const u = (t - 1.5) / 1.5;
+      px = 0.5;
+      py = 0.9 + (0.45 - 0.9) * u;
+    } else if (t < 9.0){
+      const u = (t - 3.0) / 6.0;
+      px = 0.5 + Math.sin(u * Math.PI * 2.0) * 0.14;
+      py = 0.5 + Math.cos(u * Math.PI * 1.5) * 0.12;
+    } else if (t < 13.5){
+      const u = (t - 9.0) / 4.5;
+      px = 0.5 + Math.sin(u * Math.PI * 1.2) * 0.12;
+      py = 0.45 + Math.cos(u * Math.PI * 1.4) * 0.10;
+    } else {
+      // pointer hidden/stationary
+      px = 0.5; py = 0.45;
+    }
+
+    // ---- start gate ----
+    const startedScript = t >= 2.0 ? 1 : 0;
+    state.started = t >= 2.0;
+    const targetUStarted = startedScript;
+    const uStartedRate = 1.0 / 2.5;
+    const dtForU = Math.max(0, t - state.lastSeekT);
+    if (state.lastSeekT < 0) state.uStarted = targetUStarted;
+    else {
+      state.uStarted += (targetUStarted - state.uStarted) * Math.min(1, dtForU * uStartedRate * 3);
+      if (Math.abs(state.uStarted - targetUStarted) < 0.01) state.uStarted = targetUStarted;
+    }
+
+    // ---- scripted progress uP ----
+    let p = 0;
+    if (t <= 10) {
+      p = (t / 10) * 0.12;
+    } else if (t <= 18) {
+      const u = (t - 10) / 8;
+      p = 0.12 + (0.5 - 0.12) * smoothstep(0, 1, u);
+    } else {
+      const u = (t - 18) / 6;
+      p = 0.5 + (0.7 - 0.5) * smoothstep(0, 1, u);
+    }
+
+    // ---- pointer smoothing ----
+    const prevPx = state.pointer.x, prevPy = state.pointer.y;
+    state.pointer.x = px;
+    state.pointer.y = py;
+    state.pointerTarget.set(px, py);
+    // pointer velocity in uv terms
+    const dtSim = Math.max(1/240, dtForU || 1/30);
+    const pvx = (px - prevPx) / dtSim;
+    const pvy = (py - prevPy) / dtSim;
+    const vel = Math.sqrt(pvx * pvx + pvy * pvy);
+    state.vel = vel;
+
+    // ---- scripted events ----
+    let rx = 0, ry = 0, rz = 0;
+    // reverse flow at t=5.0 for 1.6s
+    if (t >= 5.0 && t < 6.6) rx = (t - 5.0) / 1.6;
+    // robe-edge mist at t=7.5 for 0.6s
+    if (t >= 7.5 && t < 8.1) rz = 1 - Math.abs(((t - 7.5) / 0.6) - 0.5) * 2;
+    // figure emerge t=9-15 over 6s
+    if (t >= 9 && t < 15) ry = (t - 9) / 6;
+    state.evt.set(rx, ry, rz, 0.42);
+
+    // ---- scripted uAttn dwell ----
+    let dwell = 0;
+    if (t >= 6 && t < 13){
+      dwell = ((t - 6) / 7) * 7;
+    } else if (t >= 13){
+      dwell = 7;
+    }
+    state.dwell = dwell;
+    state.attn.set(px, py, dwell);
+    state.attnSmoothed.set(px, py);
+
+    // ---- scripted uStill ----
+    let still = 0;
+    if (t > 13.5) still = (t - 13.5) * 1.6;
+    state.still = still;
+
+    // ---- uSpeedMode ----
+    let sm = 0.2;
+    if (t >= 10 && t < 18) sm = 0.7;
+    else if (t >= 18) sm = 0.3;
+    state.speedMode = sm;
+
+    // ---- scripted cursor DOM ----
+    const screenX = px * state.width;
+    const screenY = (1 - py) * state.height;
+    state.cursorX = screenX;
+    state.cursorY = screenY;
+    state.cursorLaggedY += (state.cursorY - state.cursorLaggedY) * 0.5;
+    if (t < 13.5) {
+      const over = overWaterfall(screenX, screenY);
+      const stretch = over ? 1.4 : 1.0;
+      cursorEl.style.transform = `translate3d(${state.cursorX}px,${state.cursorLaggedY}px,0) scale(1,${stretch})`;
+      cursorEl.style.opacity = '1';
+    } else {
+      cursorEl.style.opacity = '0';
+    }
+
+    // ---- field step ----
+    const fieldPointerUV = { x: px, y: py };
+    const fieldPointerVel = { x: pvx * 0.5, y: pvy * 0.5 };
+    const inject = startedScript ? 1.0 : 0.0;
+    stepField(1/30, fieldPointerUV, fieldPointerVel, inject);
+
+    state.progress = p;
+    state.progressTarget = p;
+    state.time = t;
+    state.lastSeekT = t;
+
+    if (uniforms){
+      uniforms.uP.value = p;
+      uniforms.uTime.value = t;
+      uniforms.uVel.value = vel;
+      uniforms.uPulse.value = state.pulse;
+      uniforms.uFreeze.value = 0;
+      uniforms.uPointer.value.set(px, py);
+      uniforms.uClick.value.set(state.click.x, state.click.y);
+      uniforms.uPortal.value.set(state.portal.x, state.portal.y);
+      uniforms.uAspect.value = state.aspect;
+      uniforms.uIntensity.value = state.intensity;
+      uniforms.uQuality.value = state.quality;
+      uniforms.uStarted.value = state.uStarted;
+      uniforms.uStill.value = still;
+      uniforms.uAttn.value.copy(state.attn);
+      uniforms.uSpeedMode.value = sm;
+      uniforms.uEvt.value.copy(state.evt);
+    }
+
+    updateTypography(p, t);
+
+    renderer.render(scene, camera);
+    await new Promise(r => requestAnimationFrame(() => r()));
+  };
+}
+
+// ---- debug ----
+function bindDebug(){
+  if (!DEBUG) return;
+  let tries = 0;
+  const tryBind = () => {
+    if (!window.lil) {
+      if (tries++ < 100) return setTimeout(tryBind, 60);
+      return;
+    }
+    const gui = new lil.GUI({ title: 'THE IMPOSSIBLE FALL' });
+    const dbg = {
+      progress: state.progressTarget,
+      intensity: state.intensity,
+      quality: state.quality,
+      freeze: state.freeze,
+      portalX: state.portal.x,
+      portalY: state.portal.y,
+      started: state.started,
+      fps: 0
+    };
+    gui.add(dbg, 'progress', 0, 1, 0.001).onChange(v => {
+      state.progressTarget = v;
+      state.progress = v;
+      state.escapeReturn = false;
+    });
+    gui.add(dbg, 'intensity', 0, 1, 0.01).onChange(v => {
+      state.intensity = v;
+      if (uniforms) uniforms.uIntensity.value = v;
+    });
+    gui.add(dbg, 'quality', 0, 2, 1).onChange(v => {
+      state.quality = v;
+      if (uniforms) uniforms.uQuality.value = v;
+    });
+    gui.add(dbg, 'freeze', 0, 1, 0.01).onChange(v => {
+      state.freeze = v;
+    });
+    gui.add(dbg, 'portalX', 0, 1, 0.001).onChange(v => {
+      state.portal.x = v;
+      if (uniforms) uniforms.uPortal.value.set(v, state.portal.y);
+    });
+    gui.add(dbg, 'portalY', 0, 1, 0.001).onChange(v => {
+      state.portal.y = v;
+      if (uniforms) uniforms.uPortal.value.set(state.portal.x, v);
+    });
+    const fpsCtrl = gui.add(dbg, 'fps').disable();
+    setInterval(() => {
+      dbg.fps = Math.round(state.fpsSampled || 0);
+      fpsCtrl.updateValue();
+    }, 500);
+  };
+  tryBind();
+}
+
+// ---- main loop ----
+let lastT = performance.now();
+let fpsSamples = [];
+let fpsSampled = 0;
+let downgraded = false;
+
+function loop(){
+  if (RENDER_MODE) return;
+  requestAnimationFrame(loop);
+
+  const now = performance.now();
+  let dt = (now - lastT) / 1000;
+  lastT = now;
+  if (dt > 0.1) dt = 0.1;
+  state.time += dt;
+
+  // fps sampling first 2s
+  if (state.time < 2.5){
+    fpsSamples.push(1 / Math.max(0.001, dt));
+    if (fpsSamples.length > 20){
+      const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
+      fpsSampled = avg;
+      if (!downgraded && avg < 40 && state.quality > 0){
+        state.quality -= 1;
+        if (uniforms) uniforms.uQuality.value = state.quality;
+        downgraded = true;
+      }
+    }
+  }
+
+  const nowAbs = performance.now() / 1000;
+  const sinceStart = state.started ? (nowAbs - state.startTimeAbs) : 0;
+
+  // start gate: ease uStarted 0->1 over 2.5s
+  if (state.started){
+    const rate = 1.0 / 2.5;
+    state.uStarted = Math.min(1, state.uStarted + dt * rate);
+  }
+
+  // observation: idle timer
+  const idle = nowAbs - state.lastInputTime;
+  state.still = idle;
+
+  // attention
+  const pr = 0.06;
+  const dxA = state.pointer.x - state.attnSmoothed.x;
+  const dyA = state.pointer.y - state.attnSmoothed.y;
+  const dist = Math.sqrt(dxA*dxA + dyA*dyA);
+  if (dist < pr){
+    state.dwell += dt;
+  } else {
+    state.dwell = Math.max(0, state.dwell - dt * 0.5);
+  }
+  state.attnSmoothed.lerp(state.pointer, Math.min(1, dt * 1.5));
+  state.attn.set(state.attnSmoothed.x, state.attnSmoothed.y, state.dwell);
+
+  // speed mode: smoothed normalized pointer speed + scroll speed
+  const scrollRate = Math.abs(state.progressTarget - state.progress) / Math.max(0.001, dt);
+  const normSpeed = Math.min(1, state.vel * 0.5 + scrollRate * 0.5);
+  const tc = 1.5;
+  state.speedMode += (normSpeed - state.speedMode) * Math.min(1, dt / tc);
+
+  // escape return
+  if (state.escapeReturn){
+    state.progressTarget += (0 - state.progressTarget) * Math.min(1, dt * 3);
+    if (state.progressTarget < 0.001){
+      state.progressTarget = 0;
+      state.escapeReturn = false;
+    }
+  }
+
+  // progress inertia, with layered discovery cap
+  let rate = state.calmMotion ? 4.0 : 6.0;
+
+  // layered discovery: slow progress gain x0.35 during first 30s (soft cap at 0.3)
+  if (state.started && sinceStart < 30){
+    if (state.progressTarget < 0.3){
+      rate *= 0.35;
+    }
+  }
+
+  state.progress += (state.progressTarget - state.progress) * Math.min(1, dt * rate);
+  if (Math.abs(state.progressTarget - state.progress) < 0.0002) {
+    state.progress = state.progressTarget;
+  }
+
+  // pointer smoothing
+  state.pointerPrev.copy(state.pointer);
+  state.pointer.x += (state.pointerTarget.x - state.pointer.x) * Math.min(1, dt * 6);
+  state.pointer.y += (state.pointerTarget.y - state.pointer.y) * Math.min(1, dt * 6);
+
+  // pointer velocity
+  const pvx = (state.pointer.x - state.pointerPrev.x) / Math.max(0.001, dt);
+  const pvy = (state.pointer.y - state.pointerPrev.y) / Math.max(0.001, dt);
+  const pvel = Math.sqrt(pvx * pvx + pvy * pvy);
+  state.vel = state.vel * 0.9 + pvel * 0.1;
+
+  // pulse decay
+  state.pulse *= Math.pow(0.02, dt);
+
+  // freeze (hold > 250ms)
+  if (state.pointerDownTime && (performance.now() - state.pointerDownTime) > 250){
+    state.freeze = 1;
+  } else {
+    state.freeze *= Math.pow(0.001, dt);
+    if (state.freeze < 0.001) state.freeze = 0;
+  }
+
+  // rare events
+  updateEvents(nowAbs, sinceStart, dt);
+
+  // field step (live)
+  const pointerUV = {
+    x: (state.pointer.x * 0.5 + 0.5),
+    y: (state.pointer.y * 0.5 + 0.5)
+  };
+  const pointerVelScaled = { x: pvx * 0.3, y: pvy * 0.3 };
+  const inject = state.started ? (state.overWater ? 1.0 : 0.35) : 0.0;
+  if (state.started) {
+    stepField(dt, pointerUV, pointerVelScaled, inject);
+  }
+
+  // custom cursor
+  updateCursor(dt);
+
+  if (uniforms){
+    uniforms.uP.value = state.progress;
+    uniforms.uTime.value = state.time;
+    uniforms.uVel.value = state.vel;
+    uniforms.uPulse.value = state.pulse;
+    uniforms.uFreeze.value = state.freeze;
+    uniforms.uPointer.value.set(state.pointer.x, state.pointer.y);
+    uniforms.uClick.value.set(state.click.x, state.click.y);
+    uniforms.uPortal.value.set(state.portal.x, state.portal.y);
+    uniforms.uAspect.value = state.aspect;
+    uniforms.uIntensity.value = state.intensity;
+    uniforms.uQuality.value = state.quality;
+    uniforms.uStarted.value = state.uStarted;
+    uniforms.uStill.value = state.still;
+    uniforms.uAttn.value.copy(state.attn);
+    uniforms.uSpeedMode.value = state.speedMode;
+    uniforms.uEvt.value.copy(state.evt);
+  }
+
+  updateTypography(state.progress, state.time);
+  updateAudio(state.progress, dt);
+
+  renderer.render(scene, camera);
+}
+
+// ---- lifecycle ----
+window.addEventListener('pagehide', () => {
+  try {
+    if (mesh) { mesh.geometry.dispose(); }
+    if (material) { material.dispose(); }
+    if (fieldRT_A) fieldRT_A.dispose();
+    if (fieldRT_B) fieldRT_B.dispose();
+    if (fieldMat) fieldMat.dispose();
+    if (fieldMesh) fieldMesh.geometry.dispose();
+    if (uniforms){
+      ['uImg','uSem1','uSem2','uSem3','uSem4'].forEach(k => {
+        if (uniforms[k] && uniforms[k].value && uniforms[k].value.dispose) uniforms[k].value.dispose();
+      });
+    }
+    renderer.dispose();
+  } catch(e){ /* noop */ }
+});
+
+// ---- boot ----
+boot().catch(err => {
+  console.error('[THE IMPOSSIBLE FALL] boot failure', err);
+  window.renderReady = true;
+});
+
+</script>
+</body>
+</html>
